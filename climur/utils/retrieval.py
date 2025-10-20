@@ -104,7 +104,7 @@ def compute_retrieval_metrics(query_embeds: List, query_labels: List, item_embed
         for name in metric_names:
             if name == "precision":
                 for k in k_vals:
-                    precision = retrieval_precision(sim_scores, retrieval_gt, k=k).item()
+                    precision = retrieval_precision(sim_scores, retrieval_gt, top_k=k).item()
                     all_metrics[name][f"k={k}"][query_label].append(precision)
             elif name == "MRR":
                 reciprocal_rank = retrieval_reciprocal_rank(sim_scores, retrieval_gt).item()

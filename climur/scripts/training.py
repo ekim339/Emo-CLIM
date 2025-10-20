@@ -52,6 +52,7 @@ if __name__ == "__main__":
     # parse command-line arguments:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config_file", nargs="?", const=CONFIG_FILE, default=CONFIG_FILE)
+    parser.add_argument("--resume_from_checkpoint", type=str, default=None, help="Path to checkpoint to resume training from")
     args = parser.parse_args()
 
     # set PyTorch warnings:
@@ -75,7 +76,15 @@ if __name__ == "__main__":
 
     # get device:
     gpu_id = training_configs["gpu"]
-    device = torch.device(f"cuda:{gpu_id}") if torch.cuda.is_available() else torch.device("cpu")
+    if gpu_id == -1:
+        device = torch.device("cpu")
+        print("Using device: CPU (explicitly set)")
+    elif torch.cuda.is_available():
+        device = torch.device(f"cuda:{gpu_id}")
+        print(f"Using device: CUDA:{gpu_id}")
+    else:
+        device = torch.device("cpu")
+        print("Using device: CPU (no CUDA available)")
     # set random seed if selected:     # TODO: Double-check that this does not mess up randomness of dataloaders.
     if dataset_configs["random_seed"]:
         pl.seed_everything(dataset_configs["random_seed"], workers=True)
@@ -343,21 +352,44 @@ if __name__ == "__main__":
     # --------
 
     # create trainer:
-    model_ckpt_callback = ModelCheckpoint(monitor="validation/total_loss", mode="min", save_top_k=1)
-    trainer = Trainer(
-        logger=logger,
-        max_epochs=training_configs["max_epochs"],
-        callbacks=[model_ckpt_callback],
-        val_check_interval=training_configs["val_check_interval"],
-        log_every_n_steps=logging_configs["log_every_n_steps"],
-        # sync_batchnorm=True,     # TODO: Check if this is only required for multi-GPU training.
-        accelerator="gpu",
-        devices=[training_configs["gpu"]]
-        # deterministic="warn",     # set when running training sessions for reproducibility
+    model_ckpt_callback = ModelCheckpoint(
+        monitor="validation/total_loss", 
+        mode="min", 
+        save_top_k=1,
+        save_last=True,  # Save the last checkpoint (final epoch)
+        every_n_epochs=1  # Save checkpoint every epoch
     )
+    
+    # Set accelerator and devices based on gpu config
+    if gpu_id == -1:
+        trainer = Trainer(
+            logger=logger,
+            max_epochs=training_configs["max_epochs"],
+            callbacks=[model_ckpt_callback],
+            val_check_interval=training_configs["val_check_interval"],
+            log_every_n_steps=logging_configs["log_every_n_steps"],
+            accelerator="cpu",
+            # deterministic="warn",     # set when running training sessions for reproducibility
+        )
+    else:
+        trainer = Trainer(
+            logger=logger,
+            max_epochs=training_configs["max_epochs"],
+            callbacks=[model_ckpt_callback],
+            val_check_interval=training_configs["val_check_interval"],
+            log_every_n_steps=logging_configs["log_every_n_steps"],
+            # sync_batchnorm=True,     # TODO: Check if this is only required for multi-GPU training.
+            accelerator="gpu",
+            devices=[gpu_id],
+            # deterministic="warn",     # set when running training sessions for reproducibility
+        )
 
     # train model:
-    trainer.fit(full_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    if args.resume_from_checkpoint:
+        print(f"\nResuming training from checkpoint: {args.resume_from_checkpoint}\n")
+        trainer.fit(full_model, train_dataloaders=train_loader, val_dataloaders=val_loader, ckpt_path=args.resume_from_checkpoint)
+    else:
+        trainer.fit(full_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
 
     print("\n\n")

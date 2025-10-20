@@ -97,20 +97,30 @@ class AudioSetMood(Dataset):
         # set up audio augmentations:
         if augment_params is not None:
             self.n_views = augment_params["n_views"]
-            self.transform = Compose([
-                AddBackgroundNoise(
-                    sounds_path=augment_params["background_noise"]["sounds_path"],
-                    noise_rms="relative",
-                    min_snr_in_db=augment_params["background_noise"]["min_snr"],
-                    max_snr_in_db=augment_params["background_noise"]["max_snr"],
-                    p=augment_params["background_noise"]["prob"]
-                ),
+            # Build augmentation pipeline conditionally
+            transforms = []
+            
+            # Add background noise if path is provided
+            if augment_params["background_noise"]["sounds_path"] is not None:
+                transforms.append(
+                    AddBackgroundNoise(
+                        sounds_path=augment_params["background_noise"]["sounds_path"],
+                        min_snr_db=augment_params["background_noise"]["min_snr"],
+                        max_snr_db=augment_params["background_noise"]["max_snr"],
+                        p=augment_params["background_noise"]["prob"]
+                    )
+                )
+            
+            # Add Gaussian noise
+            transforms.append(
                 AddGaussianSNR(
-                    min_snr_in_db=augment_params["gaussian_noise"]["min_snr"],
-                    max_snr_in_db=augment_params["gaussian_noise"]["max_snr"],
+                    min_snr_db=augment_params["gaussian_noise"]["min_snr"],
+                    max_snr_db=augment_params["gaussian_noise"]["max_snr"],
                     p=augment_params["gaussian_noise"]["prob"]
                 )
-            ])
+            )
+            
+            self.transform = Compose(transforms) if transforms else None
         else:
             self.transform = None
     
@@ -149,15 +159,26 @@ class AudioSetMood(Dataset):
         file_path = os.path.join(self.root, self.audio_dir_name, orig_subset, file_name)
         # load audio:
         audio, sample_rate = torchaudio.load(file_path)
+        
+        # Resample if needed for CLAP (which uses 48kHz)
         if self.audio_model == "CLAP":
-            audio = torchaudio.functional.resample(
-                audio, 
-                orig_freq=sample_rate, 
-                new_freq=48000
-            )
-            sample_rate = 48000
+            if sample_rate != 48000:
+                audio = torchaudio.functional.resample(
+                    audio, 
+                    orig_freq=sample_rate, 
+                    new_freq=48000
+                )
+            expected_rate = 48000
+        else:
+            expected_rate = self.sample_rate
+            if sample_rate != expected_rate:
+                audio = torchaudio.functional.resample(
+                    audio,
+                    orig_freq=sample_rate,
+                    new_freq=expected_rate
+                )
+        
         audio = audio.squeeze(dim=0)
-        assert sample_rate == self.sample_rate, "Unexpected sampling rate."
 
         # check that audio clip is long enough:
         length = audio.size(dim=0)

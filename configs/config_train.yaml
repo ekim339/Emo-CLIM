@@ -6,8 +6,8 @@
 ---
 # dataset options:
 dataset:
-  image_dataset_dir: "/proj/systewar/datasets/IMAC/image_dataset"
-  audio_dataset_dir: "/proj/systewar/datasets/audioset_music_mood"
+  image_dataset_dir: "/Users/eugenekim/Emo-CLIM/dataset/DeepEmotion"
+  audio_dataset_dir: "/Users/eugenekim/Emo-CLIM/dataset/AudioSet"
   train_n_batches: 100     # number of batches (per epoch) to use for training set
   val_n_batches: 100        # number of batches to use for validation set
   sample_rate: 16000
@@ -21,8 +21,8 @@ audio_augment:
     min_snr: 5.0      # in dB
     max_snr: 40.0     # in dB
   background_noise:
-    sounds_path: "/proj/systewar/datasets/NSynth/nsynth-train/audio"
-    prob: 0.8
+    sounds_path: null  # Set to null to disable background noise augmentation (or provide NSynth path)
+    prob: 0.0
     min_snr: 3.0      # in dB
     max_snr: 30.0     # in dB
 image_augment:
@@ -30,12 +30,12 @@ image_augment:
 
 # audio backbone options:
 audio_backbone:
-  model_name: "HarmonicCNN"      # or "ShortChunk" or "SampleCNN" or "CLAP"
+  model_name: "CLAP"      # or "ShortChunk" or "SampleCNN" or "CLAP"
   pretrained_model_paths:
     HarmonicCNN: "/proj/systewar/pretrained_models/music_tagging/msd/harmonic_cnn/best_model.pth"
     ShortChunk: "/proj/systewar/pretrained_models/music_tagging/msd/short_chunk_resnet/best_model.pth"
     SampleCNN: "/proj/systewar/pretrained_models/VCMR/multimodal/multimodal_model_1.ckpt"
-    CLAP: "/project/shrikann_35/tiantiaf/music/music/pretrained_models/music_speech_epoch_15_esc_89.25.pt"
+    CLAP: "/Users/eugenekim/Emo-CLIM/climur/models/CLAP/music_speech_audioset_epoch_15_esc_89.98.pt"
   last_layer_embed: "layer7"     # only used for "ShortChunk" and "HarmonicCNN"
   pool_type: "max"               # # only used for "ShortChunk" and "HarmonicCNN"
 
@@ -61,12 +61,12 @@ training:
     image2audio: 0.25
     audio2image: 0.25
   batch_size: 64
-  max_epochs: 30
+  max_epochs: 6 #30
   optimizer: "AdamW"
   learn_rate: 0.0001
   val_check_interval: 1.0     # how often to check validation set within a single training epoch
   n_workers: 4
-  gpu: 1
+  gpu: -1  # Set to 0 for single GPU, or -1 for CPU
 
 # logging options:
 # note: logs are saved to log_dir/experiment_name/experiment_version/

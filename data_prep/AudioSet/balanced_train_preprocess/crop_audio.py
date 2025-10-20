@@ -7,22 +7,17 @@ import tqdm
 
 
 # data paths:
-SOURCE_DIR = "/proj/systewar/datasets/audioset_music_mood/balanced_train_preprocess/balanced_train_wav_full"
-TARGET_DIR = "/proj/systewar/datasets/audioset_music_mood/audio_files/balanced_train"
+SOURCE_DIR = "/Users/eugenekim/Emo-CLIM/dataset/AudioSet/balanced_train_preprocess/balanced_train_wav_full"
+TARGET_DIR = "/Users/eugenekim/Emo-CLIM/dataset/AudioSet/audio_files/balanced_train"
 
 # constants:
 SAMPLE_RATE = 16000
 CLIP_LENGTH_SEC = 10.0
 CLIP_LENGTH_SAMPLES = int(CLIP_LENGTH_SEC * SAMPLE_RATE)
-TORCHAUDIO_BACKEND = "sox_io"
 
 
 if __name__ == "__main__":
     print("\n")
-
-    # verify torchaudio backend:
-    if torchaudio.get_audio_backend() != TORCHAUDIO_BACKEND:
-        raise RuntimeError("torchaudio backend is different from expected.")
     
     # create target directory:
     os.makedirs(TARGET_DIR, exist_ok=True)
@@ -45,8 +40,11 @@ if __name__ == "__main__":
         start_time_str = youtube_id_start_time.split("_")[-1]
         youtube_id = youtube_id_start_time.replace("_" + start_time_str, "")
         assert len(youtube_id) == len(youtube_id_start_time) - len(start_time_str) - 1, "Error with removing start_time."
-        # convert start time string to float:
-        start_time_sec = float(start_time_str)
+        # convert start time string to float (handle "start-end" format):
+        if "-" in start_time_str:
+            start_time_sec = float(start_time_str.split("-")[0])  # Extract start time from "start-end"
+        else:
+            start_time_sec = float(start_time_str)
 
         # load audio:
         audio_full, sample_rate = torchaudio.load(os.path.join(SOURCE_DIR, file_name))
@@ -57,18 +55,21 @@ if __name__ == "__main__":
         start_time_samples = int(start_time_sec * SAMPLE_RATE)
         audio_segment = audio_full[start_time_samples : start_time_samples + CLIP_LENGTH_SAMPLES]
         audio_segment = audio_segment.unsqueeze(dim=0)
-        if tuple(audio_segment.size()) != (1, CLIP_LENGTH_SAMPLES):
+        
+        # Skip if segment is too short or empty:
+        if audio_segment.size(dim=-1) < CLIP_LENGTH_SAMPLES:
             n_unexpect_files += 1
-            print("Unexpected audio_segment shape: {}".format(tuple(audio_segment.size())))
             if audio_segment.size(dim=-1) < min_clip_length:
                 min_clip_length = audio_segment.size(dim=-1)
+            # Skip saving this file if it's too short
+            continue
         
         # save to file:
         save_file_name = f"{youtube_id}_{start_time_sec}.wav"
         torchaudio.save(
-            filepath=os.path.join(TARGET_DIR, save_file_name),
-            src=audio_segment,
-            sample_rate=SAMPLE_RATE,
+            os.path.join(TARGET_DIR, save_file_name),  # First positional argument (no 'filepath=')
+            audio_segment,
+            SAMPLE_RATE,
             channels_first=True
         )
     

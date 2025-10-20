@@ -13,7 +13,7 @@
 pretrained_models/
 train_logs/
 train_logs_old/
-
+dataset/
 
 
 # GITHUB'S DEFAULT .gitignore FOR PYTHON:
