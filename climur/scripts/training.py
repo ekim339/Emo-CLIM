@@ -5,7 +5,7 @@ import os
 import argparse
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger, MLFlowLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 import torch
 from torch.utils.data import DataLoader
@@ -340,11 +340,29 @@ if __name__ == "__main__":
         experiment_name = logging_configs["experiment_name"]
     
     # create logger (logs are saved to /save_dir/name/version/):
-    logger = TensorBoardLogger(
+    # Option 1: Use TensorBoard only
+    # logger = TensorBoardLogger(
+    #     save_dir=logging_configs["log_dir"],
+    #     name=experiment_name,
+    #     version=logging_configs["experiment_version"],
+    # )
+    
+    # Option 2: Use MLflow only
+    mlflow_logger = MLFlowLogger(
+        experiment_name=experiment_name,
+        tracking_uri="file:./mlruns",  # Local MLflow tracking (or use remote server URI)
+        run_name=logging_configs.get("experiment_version", None),
+    )
+    
+    # Option 3: Use both TensorBoard AND MLflow (recommended for transition period)
+    tensorboard_logger = TensorBoardLogger(
         save_dir=logging_configs["log_dir"],
         name=experiment_name,
         version=logging_configs["experiment_version"],
     )
+    
+    # Use both loggers
+    logger = [tensorboard_logger, mlflow_logger]
 
 
     # --------
