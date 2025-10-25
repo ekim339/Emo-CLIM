@@ -36,6 +36,8 @@ d_unbalanced_train = Downloader(
     copy_and_replicate=False      # if a clip has multiple labels, store once
 )
 
+os.makedirs(ROOT, exist_ok=True)
+os.makedirs(os.path.join(ROOT, "unbalanced_train_preprocess/unbalanced_train_m4a"), exist_ok=True)
 # choose an audio format supported by yt-dlp’s --audio-format
 d_unbalanced_train.download(format="m4a") 
 
