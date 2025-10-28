@@ -10,23 +10,23 @@ import warnings
 
 
 # data paths:
-DATA_ROOT = "/Users/eugenekim/Emo-CLIM/dataset/AudioSet"
+DATA_ROOT = "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/AudioSet"
 AUDIO_DIR = "audio_files"
-ONTOLOGY_FILE = "/Users/eugenekim/Emo-CLIM/dataset/AudioSet/orig_metadata_files/ontology.json"
+ONTOLOGY_FILE = "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/AudioSet/orig_metadata_files/ontology.json"
 ORIG_METADATA_FILES = {
-    "unbalanced_train": "/Users/eugenekim/Emo-CLIM/dataset/AudioSet/orig_metadata_files/unbalanced_train_segments.csv",
-    "balanced_train": "/Users/eugenekim/Emo-CLIM/dataset/AudioSet/orig_metadata_files/balanced_train_segments.csv",
-    "eval": "/Users/eugenekim/Emo-CLIM/dataset/AudioSet/orig_metadata_files/eval_segments.csv"
+    "unbalanced_train": "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/AudioSet/orig_metadata_files/unbalanced_train_segments.csv",
+    "balanced_train": "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/AudioSet/orig_metadata_files/balanced_train_segments.csv",
+    "eval": "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/AudioSet/orig_metadata_files/eval_segments.csv"
 }
 # AudioSet music mood subset label names:
 MOOD_LABEL_NAMES = ["Happy music", "Funny music", "Sad music", "Tender music", "Exciting music", "Angry music", "Scary music"]
 
 # script options:
-data_subsets = ["balanced_train", "eval"]  # Only process subsets we downloaded
+data_subsets = ["balanced_train", "eval", 'unbalanced_train']  # Only process subsets we downloaded
 new_metadata_files = {
-    "unbalanced_train": "/Users/eugenekim/Emo-CLIM/dataset/AudioSet/metadata_unbalanced_train.csv",
-    "balanced_train": "/Users/eugenekim/Emo-CLIM/dataset/AudioSet/metadata_balanced_train.csv",
-    "eval": "/Users/eugenekim/Emo-CLIM/dataset/AudioSet/metadata_eval.csv"
+    "unbalanced_train": "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/AudioSet/metadata_unbalanced_train.csv",
+    "balanced_train": "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/AudioSet/metadata_balanced_train.csv",
+    "eval": "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/AudioSet/metadata_eval.csv"
 }
 
 
