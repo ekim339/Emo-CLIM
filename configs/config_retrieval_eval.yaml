@@ -7,8 +7,8 @@
 # dataset options:
 dataset:
   subset: "test"     # or "test"
-  image_dataset_dir: "/proj/systewar/datasets/IMAC/image_dataset"
-  audio_dataset_dir: "/proj/systewar/datasets/audioset_music_mood"
+  image_dataset_dir: "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/DeepEmotion"
+  audio_dataset_dir: "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/AudioSet"
   sample_rate: 48000     # or 16000
 
 # audio backbone options:
@@ -19,7 +19,7 @@ audio_backbone:
 
 # full model options:
 full_model:
-  checkpoint_path: "/proj/tiantian/train_logs/single_task/CLAP/frozen/all_losses/version_0/checkpoints/epoch=20-step=2100.ckpt"
+  checkpoint_path: "/content/drive/MyDrive/LIKELION/EmoCLIM-dataset/train_logs/single_task/CLAP/frozen/all_losses/version_1/checkpoints/last.ckpt"
   multi_task: false
   output_embed_dim: 128
   base_proj_hidden_dim: 256
@@ -38,6 +38,6 @@ eval:
   overlap_ratio: 0.75
   retrieval_metrics: ["precision", "MRR"]
   k_vals: [1, 5,]
-  gpu: 1
+  gpu: 0 #1
 ...
 
